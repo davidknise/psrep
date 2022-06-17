@@ -1,6 +1,9 @@
 <#
 .SYNOPSIS
-Searches for regular expressions across files.
+Searches for regular expressions across files and directories.
+
+.LINK
+https://github.com/davidknise/psrep
 #>
 function Invoke-PSRep
 {
@@ -37,6 +40,10 @@ function Invoke-PSRep
         [Parameter(ParameterSetName="File")]
         [Parameter(ParameterSetName="Directory")]
         [Switch] $CaseSensitive,
+
+        [Parameter(ParameterSetName="File")]
+        [Parameter(ParameterSetName="Directory")]
+        [String] $OutputType,
 
         [Parameter(ParameterSetName="File")]
         [Parameter(ParameterSetName="Directory")]
@@ -201,11 +208,9 @@ function Invoke-PSRep
                     LineIndex = $i
                     LineNumber = $i + 1
                     Matches = @()
-                    Index = $matchCollection[0].Index
-                    Length = $matchCollection[0].Length
                 }
+
                 $matchInfo.LineNumberString = $matchInfo.LineNumber.ToString()
-                $matchInfos += $matchInfo
 
                 foreach ($match in $matchCollection)
                 {
@@ -214,6 +219,8 @@ function Invoke-PSRep
                         Length = $match.Length
                     }
                 }
+
+                $matchInfos += $matchInfo
 
                 if ($matchInfo.LineNumber -gt $longestLineNumber)
                 {
