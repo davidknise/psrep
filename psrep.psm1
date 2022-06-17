@@ -7,90 +7,90 @@ https://github.com/davidknise/psrep
 #>
 function Invoke-PSRep
 {
-    [CmdletBinding(DefaultParameterSetName="Directory")]
+    [CmdletBinding(DefaultParameterSetName='Directory')]
     Param
     (
-        [Parameter(ParameterSetName="File", Mandatory=$true)]
+        [Parameter(ParameterSetName='File', Mandatory=$true)]
         [String] $FilePath,
 
-        [Parameter(ParameterSetName="Directory")]
+        [Parameter(ParameterSetName='Directory')]
         [String] $Directory,
 
-        [Parameter(ParameterSetName="Directory")]
+        [Parameter(ParameterSetName='Directory')]
         [Switch] $NotRecurse,
 
-        [Parameter(ParameterSetName="Directory")]
+        [Parameter(ParameterSetName='Directory')]
         [String] $Filter,
 
-        [Parameter(ParameterSetName="Directory")]
+        [Parameter(ParameterSetName='Directory')]
         [String[]] $Exclude,
 
-        [Parameter(ParameterSetName="File", Position=0, Mandatory=$true)]
-        [Parameter(ParameterSetName="Directory", Position=0, Mandatory=$true)]
+        [Parameter(ParameterSetName='File', Position=0, Mandatory=$true)]
+        [Parameter(ParameterSetName='Directory', Position=0, Mandatory=$true)]
         [String] $Pattern,
 
-        [Parameter(ParameterSetName="File")]
-        [Parameter(ParameterSetName="Directory")]
+        [Parameter(ParameterSetName='File')]
+        [Parameter(ParameterSetName='Directory')]
         [Switch] $String,
 
-        [Parameter(ParameterSetName="File")]
-        [Parameter(ParameterSetName="Directory")]
+        [Parameter(ParameterSetName='File')]
+        [Parameter(ParameterSetName='Directory')]
         [System.Text.RegularExpressions.RegexOptions] $RegexOptions = [System.Text.RegularExpressions.RegexOptions]::None,
 
-        [Parameter(ParameterSetName="File")]
-        [Parameter(ParameterSetName="Directory")]
+        [Parameter(ParameterSetName='File')]
+        [Parameter(ParameterSetName='Directory')]
         [Switch] $CaseSensitive,
 
-        [Parameter(ParameterSetName="File")]
-        [Parameter(ParameterSetName="Directory")]
+        [Parameter(ParameterSetName='File')]
+        [Parameter(ParameterSetName='Directory')]
         [String] $OutputType,
 
-        [Parameter(ParameterSetName="File")]
-        [Parameter(ParameterSetName="Directory")]
+        [Parameter(ParameterSetName='File')]
+        [Parameter(ParameterSetName='Directory')]
         [String] $MatchFileColor,
 
-        [Parameter(ParameterSetName="File")]
-        [Parameter(ParameterSetName="Directory")]
+        [Parameter(ParameterSetName='File')]
+        [Parameter(ParameterSetName='Directory')]
         [String] $MatchColor,
 
-        [Parameter(ParameterSetName="File")]
-        [Parameter(ParameterSetName="Directory")]
+        [Parameter(ParameterSetName='File')]
+        [Parameter(ParameterSetName='Directory')]
         [String] $MatchLineNumberColor,
 
-        [Parameter(ParameterSetName="File")]
-        [Parameter(ParameterSetName="Directory")]
+        [Parameter(ParameterSetName='File')]
+        [Parameter(ParameterSetName='Directory')]
         [String] $NotMatchLineNumberColor,
 
-        [Parameter(ParameterSetName="File")]
-        [Parameter(ParameterSetName="Directory")]
+        [Parameter(ParameterSetName='File')]
+        [Parameter(ParameterSetName='Directory')]
         [String] $MatchIdentifier,
 
-        [Parameter(ParameterSetName="File")]
-        [Parameter(ParameterSetName="Directory")]
+        [Parameter(ParameterSetName='File')]
+        [Parameter(ParameterSetName='Directory')]
         [String] $IndentChar = ' ',
 
-        [Parameter(ParameterSetName="File")]
-        [Parameter(ParameterSetName="Directory")]
+        [Parameter(ParameterSetName='File')]
+        [Parameter(ParameterSetName='Directory')]
         [Int] $IndentSize = 2,
 
-        [Parameter(ParameterSetName="File")]
-        [Parameter(ParameterSetName="Directory")]
+        [Parameter(ParameterSetName='File')]
+        [Parameter(ParameterSetName='Directory')]
         [Int] $MinimumIndent = 5,
 
-        [Parameter(ParameterSetName="File")]
-        [Parameter(ParameterSetName="Directory")]
+        [Parameter(ParameterSetName='File')]
+        [Parameter(ParameterSetName='Directory')]
         [String] $LineSeparator,
 
-        [Parameter(ParameterSetName="File")]
-        [Parameter(ParameterSetName="Directory")]
+        [Parameter(ParameterSetName='File')]
+        [Parameter(ParameterSetName='Directory')]
         [Int] $LinesPadding = 2,
 
-        [Parameter(ParameterSetName="File")]
-        [Parameter(ParameterSetName="Directory")]
+        [Parameter(ParameterSetName='File')]
+        [Parameter(ParameterSetName='Directory')]
         [Int] $LinesBefore = 0,
 
-        [Parameter(ParameterSetName="File")]
-        [Parameter(ParameterSetName="Directory")]
+        [Parameter(ParameterSetName='File')]
+        [Parameter(ParameterSetName='Directory')]
         [Int] $LinesAfter = 0
     )
 
