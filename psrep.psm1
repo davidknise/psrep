@@ -354,7 +354,7 @@ function Invoke-PSRep
         }
     }
 
-    Write-Host "$matchCount matches across $fileCount files" 
+    Write-Host "Found $matchCount matches in $fileCount files" 
 }
 
 Set-Alias -Name 'psrep' -Value 'Invoke-PSRep'
