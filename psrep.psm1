@@ -153,7 +153,7 @@ function Invoke-PSRep
 
     if ([String]::IsNullOrWhiteSpace($LineSeparator))
     {
-        $LineSeparator = '..'
+        $LineSeparator = '...'
     }
 
     if ($LinesPadding -lt 0)
@@ -177,149 +177,6 @@ function Invoke-PSRep
 
     $script:fileCount = 0
     $script:matchCount = 0
-
-    Function Find-RegexInFile
-    {
-        Param
-        (
-            [String] $FilePath
-        )
-
-        $lines = Get-Content -Path $FilePath
-
-        if (-not $lines)
-        {
-            return
-        }
-
-        $fileMatch = $false
-        $matchInfos = @()
-        $longestLineNumber = 0
-
-        for ($i = 0; $i -lt $lines.Count; $i++)
-        {
-            $matchCollection = $regex.Matches($lines[$i])
-
-            # TODO: Multiple matches per line
-
-            if ($matchCollection.Success)
-            {
-                $matchInfo = @{
-                    LineIndex = $i
-                    LineNumber = $i + 1
-                    Matches = @()
-                }
-
-                $matchInfo.LineNumberString = $matchInfo.LineNumber.ToString()
-
-                foreach ($match in $matchCollection)
-                {
-                    $matchInfo.Matches += @{
-                        Index = $match.Index
-                        Length = $match.Length
-                    }
-                }
-
-                $matchInfos += $matchInfo
-
-                if ($matchInfo.LineNumber -gt $longestLineNumber)
-                {
-                    $longestLineNumber = $matchInfo.LineNumber
-                }
-            }
-        }
-
-        if ($matchInfos.Count -gt 0)
-        {
-            $script:fileCount += 1
-            $script:matchCount += $matchInfos.Count
-            Write-Host $FilePath -ForegroundColor $MatchFileColor
-
-            $lastMatch = $null
-            $match = $null
-            $nextMatch = $matchInfos[0]
-            $afterInex = 0
-            
-            $rightAlignLength = $IndentSize + $longestLineNumber.ToString().Length
-            if ($rightAlignLength -lt $MinimumIndent)
-            {
-                $rightAlignLength = $MinimumIndent
-            }
-
-            for ($i = 0; $i -lt $matchInfos.Count; $i++)
-            {
-                $match = $nextMatch
-                $line = $lines[$match.LineIndex]
-
-                # Write out lines before
-                $beforeCount = 0
-                $beforeIndex = $match.LineIndex - $LinesBefore
-                if ($beforeIndex -lt 0)
-                {
-                    $beforeIndex = 0
-                }
-                while ($beforeCount -lt $LinesBefore -and $beforeIndex -lt $match.LineIndex)
-                {
-                    if ($beforeIndex -ge $afterIndex)
-                    {
-                        Write-Host ($IndentChar * ($rightAlignLength - $beforeIndex.ToString().Length)) -NoNewLine
-                        Write-Host ($beforeIndex + 1) -ForegroundColor $NotMatchLineNumberColor -NoNewLine
-                        Write-Host "  " -NoNewLine
-                        Write-Host $lines[$beforeIndex] -ForegroundColor 'DarkGray'
-                    }
-
-                    $beforeCount++
-                    $beforeIndex++
-                }
-
-                Write-Host ($IndentChar * ($rightAlignLength - $match.LineNumberString.Length)) -NoNewLine
-                Write-Host $match.LineNumber -ForegroundColor $MatchLineNumberColor -NoNewLine
-                Write-Host "$MatchIdentifier " -NoNewLine
-                $matchLineIndex = 0
-                for ($mi = 0; $mi -lt $match.Matches.Count; $mi++)
-                {
-                    $matchInstance = $match.Matches[$mi]
-                    Write-Host $line.SubString($matchLineIndex, $matchInstance.Index - $matchLineIndex) -NoNewLine
-                    Write-Host $line.SubString($matchInstance.Index, $matchInstance.Length) -ForegroundColor $MatchColor -NoNewLine
-
-                    $matchLineIndex = $matchInstance.Index + $matchInstance.Length
-                    if (($mi + 1) -eq $match.Matches.Count)
-                    {
-                        # Remaining line
-                        Write-Host $line.SubString($matchLineIndex)
-                    }
-                }
-
-                # Write out lines after
-                $nextMatch = $null
-                if (($i + 1) -lt $matchInfos.Count)
-                {
-                    $lastMatch = $match
-                    $nextMatch = $matchInfos[$i + 1]
-                }
-
-                $afterCount = 0
-                $afterIndex = $match.LineIndex + 1
-                while ($afterCount -lt $LinesAfter -and $afterIndex -lt $lines.Count -and ($nextMatch -eq $null -or $afterIndex -lt $nextMatch.LineIndex))
-                {
-                    Write-Host ($IndentChar * ($rightAlignLength - ($afterIndex + 1).ToString().Length)) -NoNewLine
-                    Write-Host ($afterIndex + 1) -ForegroundColor $NotMatchLineNumberColor -NoNewLine
-                    Write-Host "  " -NoNewLine
-                    Write-Host $lines[$afterIndex] -ForegroundColor 'DarkGray'
-
-                    $afterCount++
-                    $afterIndex++
-                }
-
-                if ($nextMatch -and $nextMatch.LineIndex -gt ($afterIndex))
-                {
-                    Write-Host "$($IndentChar * ($rightAlignLength - $LineSeparator.Length))$LineSeparator"
-                }
-            }
-            
-            Write-Host ''
-        }
-    }
 
     switch ($PSCmdlet.ParameterSetName)
     {
@@ -355,6 +212,149 @@ function Invoke-PSRep
     }
 
     Write-Host "Found $matchCount matches in $fileCount files" 
+}
+
+function Find-RegexInFile
+{
+    Param
+    (
+        [String] $FilePath
+    )
+
+    $lines = Get-Content -Path $FilePath
+
+    if (-not $lines)
+    {
+        return
+    }
+
+    $fileMatch = $false
+    $matchInfos = @()
+    $longestLineNumber = 0
+
+    for ($i = 0; $i -lt $lines.Count; $i++)
+    {
+        $matchCollection = $regex.Matches($lines[$i])
+
+        # TODO: Multiple matches per line
+
+        if ($matchCollection.Success)
+        {
+            $matchInfo = @{
+                LineIndex = $i
+                LineNumber = $i + 1
+                Matches = @()
+            }
+
+            $matchInfo.LineNumberString = $matchInfo.LineNumber.ToString()
+
+            foreach ($match in $matchCollection)
+            {
+                $matchInfo.Matches += @{
+                    Index = $match.Index
+                    Length = $match.Length
+                }
+            }
+
+            $matchInfos += $matchInfo
+
+            if ($matchInfo.LineNumber -gt $longestLineNumber)
+            {
+                $longestLineNumber = $matchInfo.LineNumber
+            }
+        }
+    }
+
+    if ($matchInfos.Count -gt 0)
+    {
+        $script:fileCount += 1
+        $script:matchCount += $matchInfos.Count
+        Write-Host $FilePath -ForegroundColor $MatchFileColor
+
+        $lastMatch = $null
+        $match = $null
+        $nextMatch = $matchInfos[0]
+        $afterInex = 0
+        
+        $rightAlignLength = $IndentSize + $longestLineNumber.ToString().Length
+        if ($rightAlignLength -lt $MinimumIndent)
+        {
+            $rightAlignLength = $MinimumIndent
+        }
+
+        for ($i = 0; $i -lt $matchInfos.Count; $i++)
+        {
+            $match = $nextMatch
+            $line = $lines[$match.LineIndex]
+
+            # Write out lines before
+            $beforeCount = 0
+            $beforeIndex = $match.LineIndex - $LinesBefore
+            if ($beforeIndex -lt 0)
+            {
+                $beforeIndex = 0
+            }
+            while ($beforeCount -lt $LinesBefore -and $beforeIndex -lt $match.LineIndex)
+            {
+                if ($beforeIndex -ge $afterIndex)
+                {
+                    Write-Host ($IndentChar * ($rightAlignLength - $beforeIndex.ToString().Length)) -NoNewLine
+                    Write-Host ($beforeIndex + 1) -ForegroundColor $NotMatchLineNumberColor -NoNewLine
+                    Write-Host "  " -NoNewLine
+                    Write-Host $lines[$beforeIndex] -ForegroundColor 'DarkGray'
+                }
+
+                $beforeCount++
+                $beforeIndex++
+            }
+
+            Write-Host ($IndentChar * ($rightAlignLength - $match.LineNumberString.Length)) -NoNewLine
+            Write-Host $match.LineNumber -ForegroundColor $MatchLineNumberColor -NoNewLine
+            Write-Host "$MatchIdentifier " -NoNewLine
+            $matchLineIndex = 0
+            for ($mi = 0; $mi -lt $match.Matches.Count; $mi++)
+            {
+                $matchInstance = $match.Matches[$mi]
+                Write-Host $line.SubString($matchLineIndex, $matchInstance.Index - $matchLineIndex) -NoNewLine
+                Write-Host $line.SubString($matchInstance.Index, $matchInstance.Length) -ForegroundColor $MatchColor -NoNewLine
+
+                $matchLineIndex = $matchInstance.Index + $matchInstance.Length
+                if (($mi + 1) -eq $match.Matches.Count)
+                {
+                    # Remaining line
+                    Write-Host $line.SubString($matchLineIndex)
+                }
+            }
+
+            # Write out lines after
+            $nextMatch = $null
+            if (($i + 1) -lt $matchInfos.Count)
+            {
+                $lastMatch = $match
+                $nextMatch = $matchInfos[$i + 1]
+            }
+
+            $afterCount = 0
+            $afterIndex = $match.LineIndex + 1
+            while ($afterCount -lt $LinesAfter -and $afterIndex -lt $lines.Count -and ($nextMatch -eq $null -or $afterIndex -lt $nextMatch.LineIndex))
+            {
+                Write-Host ($IndentChar * ($rightAlignLength - ($afterIndex + 1).ToString().Length)) -NoNewLine
+                Write-Host ($afterIndex + 1) -ForegroundColor $NotMatchLineNumberColor -NoNewLine
+                Write-Host "  " -NoNewLine
+                Write-Host $lines[$afterIndex] -ForegroundColor 'DarkGray'
+
+                $afterCount++
+                $afterIndex++
+            }
+
+            if ($nextMatch -and $nextMatch.LineIndex -gt ($afterIndex))
+            {
+                Write-Host "$($IndentChar * ($rightAlignLength - $LineSeparator.Length))$LineSeparator"
+            }
+        }
+        
+        Write-Host ''
+    }
 }
 
 Set-Alias -Name 'psrep' -Value 'Invoke-PSRep'
