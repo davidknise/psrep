@@ -4,6 +4,9 @@ A PowerShell file system searching utility.
 
 Name and function fully inspired by grep (globally search for a regular expression and print).
 
+## Example
+![Running a psrep command with Pretty output (Default)](./content/pretty-output.png "psrep sample")
+
 ## Basics
 
 **Search for a regular expression in the current working directory:**
