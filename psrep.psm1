@@ -233,11 +233,6 @@ function Invoke-PSRep
             Write-Output $matchInfos
         }
     }
-
-    if ($OutputType -iin @('Simple', 'Pretty'))
-    {
-        Write-Host "Found $matchCount matches in $fileCount files" 
-    }
 }
 
 function Find-RegexInFile
