@@ -2,101 +2,106 @@
 .SYNOPSIS
 Searches for regular expressions across files and directories.
 
+.PARAMETER Pattern
+One or more patterns to search for.
+
+.PARAMETER FilePath
+One or more file paths to search. Can be combined with Directory.
+
+.PARAMETER Directory
+One or more directory paths to search. Can be combined with FilePath.
+If not files or directories are specified, the current working directory will be searched.
+
+.PARAMETER NotRecurse
+If a Directory is searched, do not search with recurse. Defaults to Recursive searching.
+
+.PARAMETER Filter
+If a Directory is searched, an array of filters to apply.
+This is forwarded to -Filter on Get-ChildItem.
+
+.PARAMETER Exclude
+If a Directory is searched, an array of globs to exclude.
+This is forwarded to -Exclude on Get-ChildItem.
+Default: @('*.exe', '*.dll', '*.pdb', '*.jar')
+
+.PARAMETER ExcludeAdditional
+If a Directory is searched, adds additional exclusions to Exclude.
+If Exclude is not provided, this parameter allows you to use all the defaults
+and additional ones, which is useful.
+
+.PARAMETER Literal
+Search for the exact pattern, not as a regular expression.
+
+.PARAMETER RegexOptions
+A [System.Text.RegularExpressions.RegexOptions] value.
+
+.PARAMETER CaseSensitive
+Process with case sensitivity. Defaults to case insensitive.
+
+.PARAMETER OutputType
+One or more output types to provide:
+* Pretty - Beautiful console output with before and after matching lines for context.
+* Simple - One-liner console output per match.
+* Object - Return an PSArray of matches.
+
 .LINK
 https://github.com/davidknise/psrep
 #>
 function Invoke-PSRep
 {
-    [CmdletBinding(DefaultParameterSetName='Directory')]
     Param
     (
-        [Parameter(ParameterSetName='File', Mandatory=$true)]
-        [String] $FilePath,
+        [Parameter(Position=0, Mandatory=$true)]
+        [String[]] $Pattern,
 
-        [Parameter(ParameterSetName='Directory')]
-        [String] $Directory,
+        [String[]] $FilePath,
 
-        [Parameter(ParameterSetName='Directory')]
+        [String[]] $Directory,
+
         [Switch] $NotRecurse,
 
-        [Parameter(ParameterSetName='Directory')]
         [String] $Filter,
 
-        [Parameter(ParameterSetName='Directory')]
         [String[]] $Exclude,
 
-        [Parameter(ParameterSetName='File', Position=0, Mandatory=$true)]
-        [Parameter(ParameterSetName='Directory', Position=0, Mandatory=$true)]
-        [String] $Pattern,
+        [String[]] $ExcludeAdditional,
 
-        [Parameter(ParameterSetName='File')]
-        [Parameter(ParameterSetName='Directory')]
-        [Switch] $String,
+        [Switch] $Literal,
 
-        [Parameter(ParameterSetName='File')]
-        [Parameter(ParameterSetName='Directory')]
         [System.Text.RegularExpressions.RegexOptions] $RegexOptions = [System.Text.RegularExpressions.RegexOptions]::None,
 
-        [Parameter(ParameterSetName='File')]
-        [Parameter(ParameterSetName='Directory')]
         [Switch] $CaseSensitive,
 
-        [Parameter(ParameterSetName='File')]
-        [Parameter(ParameterSetName='Directory')]
         [String] $OutputType,
 
-        [Parameter(ParameterSetName='File')]
-        [Parameter(ParameterSetName='Directory')]
         [String] $MatchFileColor,
 
-        [Parameter(ParameterSetName='File')]
-        [Parameter(ParameterSetName='Directory')]
         [String] $MatchColor,
 
-        [Parameter(ParameterSetName='File')]
-        [Parameter(ParameterSetName='Directory')]
         [String] $MatchLineNumberColor,
 
-        [Parameter(ParameterSetName='File')]
-        [Parameter(ParameterSetName='Directory')]
         [String] $NotMatchLineNumberColor,
 
-        [Parameter(ParameterSetName='File')]
-        [Parameter(ParameterSetName='Directory')]
         [String] $MatchIdentifier,
 
-        [Parameter(ParameterSetName='File')]
-        [Parameter(ParameterSetName='Directory')]
         [String] $IndentChar = ' ',
 
-        [Parameter(ParameterSetName='File')]
-        [Parameter(ParameterSetName='Directory')]
         [Int] $IndentSize = 2,
 
-        [Parameter(ParameterSetName='File')]
-        [Parameter(ParameterSetName='Directory')]
         [Int] $MinimumIndent = 5,
 
-        [Parameter(ParameterSetName='File')]
-        [Parameter(ParameterSetName='Directory')]
         [String] $LineSeparator,
 
-        [Parameter(ParameterSetName='File')]
-        [Parameter(ParameterSetName='Directory')]
         [Int] $LinesPadding = 2,
 
-        [Parameter(ParameterSetName='File')]
-        [Parameter(ParameterSetName='Directory')]
         [Int] $LinesBefore = 0,
 
-        [Parameter(ParameterSetName='File')]
-        [Parameter(ParameterSetName='Directory')]
         [Int] $LinesAfter = 0
     )
 
-    if ($PSCmdlet.ParameterSetName -ieq 'Directory' -and [String]::IsNullOrWhiteSpace($Directory))
+    if (-not $FilePath -and -not $Directory -or [String]::IsNullOrWhiteSpace($Directory[0]))
     {
-        $Directory = $PWD
+        $Directory = @($PWD)
     }
 
     if (-not $Exclude)
@@ -104,16 +109,24 @@ function Invoke-PSRep
         $Exclude = @('*.exe', '*.dll', '*.pdb', '*.jar')
     }
 
-    $regexPattern = $Pattern
+    $regexPatterns = $Pattern
 
-    if ($String.IsPresent)
+    if ($Literal.IsPresent)
     {
-        $regexPattern = [System.Text.RegularExpressions.Regex]::Escape($Pattern)
+        $regexPatterns = @()
+        $Pattern | ForEach-Object {
+            $regexPatterns += [System.Text.RegularExpressions.Regex]::Escape($_)
+        }
     }
 
     if ($RegexOptions -eq [System.Text.RegularExpressions.RegexOptions]::None -and -not $CaseSensitive.IsPresent)
     {
         $RegexOptions = [System.Text.RegularExpressions.RegexOptions]::IgnoreCase
+    }
+
+    if ([String]::IsNullOrWhiteSpace($OutputType))
+    {
+        $OutputType = 'Pretty'
     }
 
     if ([String]::IsNullOrWhiteSpace($MatchFileColor))
@@ -171,47 +184,60 @@ function Invoke-PSRep
         $LinesAfter = $LinesPadding
     }
 
-    $regex = New-Object 'System.Text.RegularExpressions.Regex' -ArgumentList @($regexPattern, $RegexOptions)
+    $regexes = @()
 
-    $match = $null
+    $regexPatterns | ForEach-Object {
+        $regexes += New-Object 'System.Text.RegularExpressions.Regex' -ArgumentList @($_, $RegexOptions)
+    }
 
     $script:fileCount = 0
     $script:matchCount = 0
 
-    switch ($PSCmdlet.ParameterSetName)
+    $matchInfos = @()
+
+    if ($FilePath)
     {
-        'File'
-        {
-            Write-Host "Searching for '$Pattern' in file: $FilePath"
+        $FilePath | ForEach-Object {
+            Write-Host "Searching for '$Pattern' in file: $_"
             Write-Host ''
 
-            Find-RegexInFile -FilePath $FilePath
-
-            # TODO: Not a match
-            break
-        }
-        'Directory'
-        {
-            Write-Host "Searching for '$Pattern' in directory: $Directory"
-            Write-Host ''
-
-            Get-ChildItem -Path $Directory -Filter $Filter -Attributes !Directory -Recurse:(!$NotRecurse.IsPresent) -Exclude $Exclude | % {
-                if (-not $_.IsContainer)
-                {
-                    Find-RegexInFile -FilePath $_.FullName
-                }
-            }
-
-            # TODO: Not a match
-            break
-        }
-        default
-        {
-            Write-Host "ParameterSetName not recognized: $($PSCmdlet.ParameterSetName)" -ForegroundColor 'Red'
+            $matchInfosForFile = Find-RegexInFile -FilePath $_
+            $matchInfos += $matchInfosForFile
         }
     }
 
-    Write-Host "Found $matchCount matches in $fileCount files" 
+    if ($Directory)
+    {
+        Write-Host "Searching for '$($Pattern -join ''', ''')' in directory: $Directory"
+        Write-Host ''
+
+        $Directory | ForEach-Object {
+            Get-ChildItem -Path $Directory -Filter $Filter -Attributes !Directory -Recurse:(!$NotRecurse.IsPresent) -Exclude $Exclude | % {
+                if (-not $_.IsContainer)
+                {
+                    $matchInfosForFile = Find-RegexInFile -FilePath $_.FullName
+                    $matchInfos += $matchInfosForFile
+                }
+            }
+        }
+    }
+
+    switch ($OutputType)
+    {
+        { $_ -icontains @('Simple') -or $_ -icontains 'Pretty' }
+        {
+            Write-Host "Found $matchCount matches in $fileCount files" 
+        }
+        { $_ -icontains @('Object') }
+        {
+            Write-Output $matchInfos
+        }
+    }
+
+    if ($OutputType -iin @('Simple', 'Pretty'))
+    {
+        Write-Host "Found $matchCount matches in $fileCount files" 
+    }
 }
 
 function Find-RegexInFile
@@ -234,52 +260,65 @@ function Find-RegexInFile
 
     for ($i = 0; $i -lt $lines.Count; $i++)
     {
-        $matchCollection = $regex.Matches($lines[$i])
+        $matchInfo = $null
 
-        # TODO: Multiple matches per line
+        $regexes | ForEach-Object {
+            $matchCollection = $_.Matches($lines[$i])
 
-        if ($matchCollection.Success)
-        {
-            $matchInfo = @{
-                LineIndex = $i
-                LineNumber = $i + 1
-                Matches = @()
-            }
-
-            $matchInfo.LineNumberString = $matchInfo.LineNumber.ToString()
-
-            foreach ($match in $matchCollection)
+            if ($matchCollection.Success)
             {
-                $matchInfo.Matches += @{
-                    Index = $match.Index
-                    Length = $match.Length
+                if (-not $matchInfo)
+                {
+                    $matchInfo = @{
+                        LineIndex = $i
+                        LineNumber = $i + 1
+                        Matches = @()
+                    }
+                    $matchInfo.LineNumberString = $matchInfo.LineNumber.ToString()
+
+                    if ($matchInfo.LineNumber -gt $longestLineNumber)
+                    {
+                        $longestLineNumber = $matchInfo.LineNumber
+                    }
                 }
-            }
 
-            $matchInfos += $matchInfo
+                foreach ($match in $matchCollection)
+                {
+                    $matchInfo.Matches += @{
+                        Index = $match.Index
+                        Length = $match.Length
+                    }
+                }
 
-            if ($matchInfo.LineNumber -gt $longestLineNumber)
-            {
-                $longestLineNumber = $matchInfo.LineNumber
+                $matchInfos += $matchInfo
             }
         }
+    }
+
+    if ($OutputType -icontains 'Object')
+    {
+        Write-Output $matchInfos
     }
 
     if ($matchInfos.Count -gt 0)
     {
         $script:fileCount += 1
         $script:matchCount += $matchInfos.Count
-        Write-Host $FilePath -ForegroundColor $MatchFileColor
 
-        $lastMatch = $null
-        $match = $null
-        $nextMatch = $matchInfos[0]
-        $afterInex = 0
-        
-        $rightAlignLength = $IndentSize + $longestLineNumber.ToString().Length
-        if ($rightAlignLength -lt $MinimumIndent)
+        if ($OutputType -ieq 'Pretty')
         {
-            $rightAlignLength = $MinimumIndent
+            Write-Host $FilePath -ForegroundColor $MatchFileColor
+
+            $lastMatch = $null
+            $match = $null
+            $nextMatch = $matchInfos[0]
+            $afterInex = 0
+            
+            $rightAlignLength = $IndentSize + $longestLineNumber.ToString().Length
+            if ($rightAlignLength -lt $MinimumIndent)
+            {
+                $rightAlignLength = $MinimumIndent
+            }
         }
 
         for ($i = 0; $i -lt $matchInfos.Count; $i++)
