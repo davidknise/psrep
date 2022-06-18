@@ -59,10 +59,10 @@ After installing, make sure you can get `psrep` when you open a PowerShell promp
 
 **Option 1:** Import the module in your PowerShell profile
    1. Create a edit the file at: `c:\users\<your username>\Documents\PowerShell\Modules\profile.ps1`
-   1. Add `Import-Module psauth`
+   1. Add `Import-Module psrep`
 
 **Option 2:** Import the module in your PowerShell profile
    1. Create a edit the file at: `c:\users\<your username>\Documents\PowerShell\Modules\profile.ps1`
-   1. Add `Import-Module psauth`
+   1. Add `Import-Module psrep`
 
 **PowerShellGet support coming soon.**
