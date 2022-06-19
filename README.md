@@ -56,7 +56,7 @@ git clone https://github.com/davidknise/psrep.git
 
 **PowerShellGet support coming soon.**
 
-## Make it always available
+## Make it available on the command line
 
 After installing, make sure you can get `psrep` when you open a PowerShell prompt.
 
