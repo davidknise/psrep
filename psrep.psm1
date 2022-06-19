@@ -332,7 +332,7 @@ function Find-RegexInFile
             {
                 if ($beforeIndex -ge $afterIndex)
                 {
-                    Write-Host ($IndentChar * ($rightAlignLength - $beforeIndex.ToString().Length)) -NoNewLine
+                    Write-Host ($IndentChar * ($rightAlignLength - $($beforeIndex + 1).ToString().Length)) -NoNewLine
                     Write-Host ($beforeIndex + 1) -ForegroundColor $NotMatchLineNumberColor -NoNewLine
                     Write-Host "  " -NoNewLine
                     Write-Host $lines[$beforeIndex] -ForegroundColor 'DarkGray'

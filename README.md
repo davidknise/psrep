@@ -11,47 +11,47 @@ Name and function fully inspired by grep (globally search for a regular expressi
 
 **Search for a regular expression in the current working directory:**
 ```console
-> psrep '\s*Reg.+arExpressions\*'
+psrep '\s*Reg.+arExpressions\*'
 ```
 
 **Search a directory:**
 ```console
-> psrep 'Pattern' -Directory 'c:\repos\psrep'
+psrep 'Pattern' -Directory 'c:\repos\psrep'
 ```
 
 **Search a file:**
 ```console
-> psrep 'Pattern' -FilePath 'c:\repos\psrep\psrep.psm1'
+psrep 'Pattern' -FilePath 'c:\repos\psrep\psrep.psm1'
 ```
 
 ## Advanced
 
 **Search for multiple patterns:**
 ```console
-> psrep 'Pattern1', 'Pattern2'
+psrep 'Pattern1', 'Pattern2'
 ```
 
 **Search multiple directories:**
 ```console
-> psrep 'Pattern' -Directory 'c:\repos\psrep', 'c:\temp\notes'
+psrep 'Pattern' -Directory 'c:\repos\psrep', 'c:\temp\notes'
 ```
 
 **Search multiple files:**
 ```console
-> psrep 'Pattern' -FilePath 'c:\repos\psrep\psrep.psm1', 'c:\temp\notes\psrep-notes.txt'
+psrep 'Pattern' -FilePath 'c:\repos\psrep\psrep.psm1', 'c:\temp\notes\psrep-notes.txt'
 ```
 
 **Search directories and files (multiple of each still works):**
 ```console
-> psrep 'Pattern' -Directory 'c:\repos\psrep' -FilePath 'c:\temp\notes\psrep-notes.txt'
+psrep 'Pattern' -Directory 'c:\repos\psrep' -FilePath 'c:\temp\notes\psrep-notes.txt'
 ```
 
 ## How to install
 
 **Option 1:** Clone the repo to a PowerShell modules folder:
 ```console
-> cd c:\users\<your username>\Documents\PowerShell\Modules
-> git clone https://github.com/davidknise/psrep.git
+cd c:\users\<your username>\Documents\PowerShell\Modules
+git clone https://github.com/davidknise/psrep.git
 ```
 
 **PowerShellGet support coming soon.**
